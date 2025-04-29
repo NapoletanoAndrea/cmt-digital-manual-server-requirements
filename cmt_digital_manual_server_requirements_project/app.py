@@ -4,7 +4,7 @@ import streamlit as st
 def estimate_requirements(num_pages, avg_image_size, avg_video_size_per_min, avg_video_duration, video_presence, num_users, cdn, safety_margin_percent):
 
     avg_video_size = avg_video_size_per_min * avg_video_duration * video_presence  # in MB
-    print(avg_video_size)
+    print(avg_video_size_per_min)
 
     # Calculate total content size
     total_images_size = num_pages * avg_image_size  # in MB
@@ -38,6 +38,13 @@ video_quality_options = {
     'Media (720p)': 23,
     'Alta (1080p)': 50,
     'Molto Alta (4K)': 250
+}
+
+bit_rate_options = {
+    'Bassa (480p)': 0.75,
+    'Media (720p)': 2.25,
+    'Alta (1080p)': 4.5,
+    'Molto Alta (4K)': 20
 }
 
 
@@ -83,8 +90,7 @@ def run():
         total_disk_space, total_ram = estimate_requirements(
             num_pages, avg_image_size, avg_video_size_per_minute, avg_video_duration, video_rate_per_page, num_users, cdn, safety_margin_percent)
 
-        bandwidth = avg_video_size_per_minute * num_users / 60
-        bandwidth = bandwidth * 8 / 1000
+        bandwidth = bit_rate_options[video_quality] * num_users / 1000
         bandwidth *= safety_margin_percent
         if video_rate_per_page <= .3:
             bandwidth *= video_rate_per_page * 1.3
