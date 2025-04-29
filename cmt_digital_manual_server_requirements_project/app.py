@@ -4,6 +4,7 @@ import streamlit as st
 def estimate_requirements(num_pages, avg_image_size, avg_video_size_per_min, avg_video_duration, video_presence, num_users, safety_margin_percent):
 
     avg_video_size = avg_video_size_per_min * avg_video_duration * video_presence  # in MB
+    print(avg_video_size)
 
     # Calculate total content size
     total_images_size = num_pages * avg_image_size  # in MB
@@ -69,6 +70,8 @@ def run():
 
     num_users = st.number_input('Numero di utenti concorrenti', min_value=0, value=100)
 
+    cdn = st.checkbox('CDN (Comporta costi aggiuntivi)', value=False)
+
     safety_margin_percent = st.slider(
         'Margine di sicurezza (%)', min_value=0, max_value=100, value=30)
     safety_margin_percent = 1 + safety_margin_percent / 100
@@ -78,10 +81,19 @@ def run():
         total_disk_space, total_ram = estimate_requirements(
             num_pages, avg_image_size, avg_video_size_per_minute, avg_video_duration, video_rate_per_page, num_users, safety_margin_percent)
 
+        bandwidth = (avg_video_size_per_minute * avg_video_duration) * \
+            num_users / (avg_video_duration * 60)
+        bandwidth = bandwidth * 8 / 1000
+        bandwidth *= safety_margin_percent
+        if video_rate_per_page <= .3:
+            bandwidth *= video_rate_per_page * 1.3
+        bandwidth += .1
+
         st.subheader('Risorse Raccomandate:')
         st.write(f"Spazio su disco: {total_disk_space:.2f} GB")
         st.write(f"Memoria RAM: {total_ram:.2f} GB")
-        st.write(f"Larghezza di banda: 0 GB")
+        if (not cdn):
+            st.write(f"Larghezza di banda: {bandwidth:.2f} Gbps")
 
 
 run()
