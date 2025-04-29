@@ -1,7 +1,7 @@
 import streamlit as st
 
 
-def estimate_requirements(num_pages, avg_image_size, avg_video_size_per_min, avg_video_duration, video_presence, num_users, safety_margin_percent):
+def estimate_requirements(num_pages, avg_image_size, avg_video_size_per_min, avg_video_duration, video_presence, num_users, cdn, safety_margin_percent):
 
     avg_video_size = avg_video_size_per_min * avg_video_duration * video_presence  # in MB
     print(avg_video_size)
@@ -13,7 +13,9 @@ def estimate_requirements(num_pages, avg_image_size, avg_video_size_per_min, avg
     # Total content size (in MB)
     total_content_size = total_images_size + total_video_size
 
-    total_ram_required = 1024 + num_users * 20
+    total_ram_required = 1024 + num_users * 8
+    if cdn:
+        total_ram_required /= 2
     total_disk_space_required = total_content_size  # in MB
 
     # Convert to GB for better readability
@@ -79,10 +81,9 @@ def run():
     # Calculate and display the results
     if st.button('Calcola Requisiti'):
         total_disk_space, total_ram = estimate_requirements(
-            num_pages, avg_image_size, avg_video_size_per_minute, avg_video_duration, video_rate_per_page, num_users, safety_margin_percent)
+            num_pages, avg_image_size, avg_video_size_per_minute, avg_video_duration, video_rate_per_page, num_users, cdn, safety_margin_percent)
 
-        bandwidth = (avg_video_size_per_minute * avg_video_duration) * \
-            num_users / (avg_video_duration * 60)
+        bandwidth = avg_video_size_per_minute * num_users / 60
         bandwidth = bandwidth * 8 / 1000
         bandwidth *= safety_margin_percent
         if video_rate_per_page <= .3:
